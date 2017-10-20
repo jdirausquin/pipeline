@@ -1,0 +1,101 @@
+provider "aws" {
+}
+
+variable "vpcid" {
+    type = "map"
+    default = {
+        "Dev"  = "vpc-ee44c097"
+        "Prod" = "vpc-ee44c097"
+    }
+}
+
+variable "subnet1" {
+    type = "map"
+    default = {
+        "Dev"  = "subnet-b7382fff"
+        "Prod" = "subnet-b7382fff"
+    }
+}
+
+variable "subnet2" {
+    type = "map"
+    default = {
+        "Dev"  = "subnet-7159132b"
+        "Prod" = "subnet-7159132b"
+    }
+}
+
+variable "certid" {
+    default = "arn:aws:acm:us-east-1:379099483335:certificate/f1976ccc-0b1c-4149-9601-f60c16837626"
+}
+
+variable "env" {}
+variable "app" {}
+variable "port" {}
+variable "clustersg" {}
+
+resource "aws_security_group" "sgelb" {
+    name                      = "LoadBalancer-${var.app}${var.env}"
+    vpc_id                    = "${lookup(var.vpcid, var.env)}"
+    tags {
+        Name = "LoadBalancer-${var.app}${var.env}"
+    }
+
+    ingress {
+        from_port             = "443"
+        to_port               = "443"
+        protocol              = "tcp"
+        cidr_blocks           = ["0.0.0.0/0"]
+    }
+
+    # outbound internet access
+    egress {
+        from_port             = 0
+        to_port               = 0
+        protocol              = "-1"
+        cidr_blocks           = ["0.0.0.0/0"]
+    }
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "aws_elb" "elb" {
+    name                        = "${var.app}${var.env}"
+    subnets                     = "${list("${lookup(var.subnet1, var.env)}","${lookup(var.subnet2, var.env)}")}"
+    security_groups             = ["${aws_security_group.sgelb.id}"]
+    tags {
+        Name = "${var.app}${var.env}"
+    }
+
+    listener {
+      lb_port                   = 443
+      lb_protocol               = "https"
+      ssl_certificate_id        = "${var.certid}"
+      instance_port             = "${var.port}"
+      instance_protocol         = "https"
+    }
+
+    health_check {
+      healthy_threshold         = 2
+      unhealthy_threshold       = 5
+      timeout                   = 10
+      target                    = "TCP:${var.port}"
+      interval                  = 30
+    }
+
+    cross_zone_load_balancing   = true
+    idle_timeout                = 60
+    connection_draining         = true
+    connection_draining_timeout = 300
+  }
+
+ resource "aws_security_group_rule" "rule_oncluster" {
+    type                      = "ingress"
+    from_port                 = "${var.port}"
+    to_port                   = "${var.port}"
+    protocol                  = "tcp"
+    source_security_group_id  = "${aws_security_group.sgelb.id}"
+    security_group_id         = "${var.clustersg}"
+}
