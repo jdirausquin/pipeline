@@ -33,6 +33,3 @@
         
         tags:
           - debug
-
-      - name: Terraform apply
-        command: terraform apply -target aws_ecs_task_definition.taskdef
