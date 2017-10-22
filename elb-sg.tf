@@ -34,6 +34,12 @@ variable "env" {}
 variable "app" {}
 variable "port" {}
 variable "clustersg" {}
+variable "clustername" {
+    default = "ClusterName"
+}
+variable "clusterarn" {
+    default = "ClusterARN"
+}
 
 resource "aws_security_group" "sgelb" {
     name                      = "LoadBalancer-${var.app}${var.env}"
@@ -99,4 +105,33 @@ resource "aws_elb" "elb" {
     protocol                  = "tcp"
     source_security_group_id  = "${aws_security_group.sgelb.id}"
     security_group_id         = "${var.clustersg}"
+}
+
+resource "aws_ecs_task_definition" "taskdef" {
+    family                = "taskdefname"
+    container_definitions = "${file("containerdef.json")}"
+}
+
+resource "aws_ecs_service" "servicename" {
+    name            = "servicename"
+    cluster         = "${var.clusterarn}"
+    task_definition = "${aws_ecs_task_definition.taskdef.arn}"
+    desired_count   = 1
+    #iam_role        = "${aws_iam_role.foo.arn}"
+    #depends_on      = ["aws_iam_role_policy.foo"]
+
+  placement_strategy {
+    type  = "AZ Balanced Spread"
+  }
+
+  load_balancer {
+    elb_name       = "${aws_elb.elb.name}"
+    container_name = "${var.clustername}"
+    container_port = "${var.port}"
+  }
+
+  placement_constraints {
+    type       = "memberOf"
+    expression = "attribute:ecs.availability-zone in [us-west-2a, us-west-2b]"
+  }
 }
