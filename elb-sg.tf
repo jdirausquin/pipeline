@@ -81,7 +81,7 @@ resource "aws_elb" "elb" {
       lb_protocol               = "tcp"
  #     ssl_certificate_id        = "${var.certid}"
       instance_port             = "${var.port}"
-      instance_protocol         = "https"
+      instance_protocol         = "tcp"
     }
 
     health_check {
