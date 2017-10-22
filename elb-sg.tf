@@ -5,24 +5,24 @@ provider "aws" {
 variable "vpcid" {
     type = "map"
     default = {
-        "Dev"  = "vpc-ee44c097"
-        "Prod" = "vpc-ee44c097"
+        "Dev"  = "vpc-40025d26"
+        "Prod" = "vpc-40025d26"
     }
 }
 
 variable "subnet1" {
     type = "map"
     default = {
-        "Dev"  = "subnet-b7382fff"
-        "Prod" = "subnet-b7382fff"
+        "Dev"  = "subnet-a472f2ec"
+        "Prod" = "subnet-a472f2ec"
     }
 }
 
 variable "subnet2" {
     type = "map"
     default = {
-        "Dev"  = "subnet-7159132b"
-        "Prod" = "subnet-7159132b"
+        "Dev"  = "subnet-8d4221eb"
+        "Prod" = "subnet-8d4221eb"
     }
 }
 
