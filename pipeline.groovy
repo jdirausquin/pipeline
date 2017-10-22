@@ -14,7 +14,7 @@ pipeline {
                         def SG=readFile('tmpsg')
                         echo "Security group of Cluster: ${SG}"
                         echo 'Creating ELB & Asigning rule to Cluster SG'
-                        sh "bash elb-sg.sh $Application_Name $Environment $Instance_Port ${SG}"
+                        sh "bash elb-sg.sh $Application_Name $Envi_ronment $Instance_Port ${SG}"
                     }
                 }
         }
@@ -36,6 +36,8 @@ pipeline {
                             playbook: 'taskdef.yml',
                             extras: "-e 'containername=${userInput['ContainerName']} -e taskdefname=${userInput['TaskDefName']} -e imageurl=${userInput['ImageUrl']} -e ucpu=${userInput['CpuUnits']} -e umem=${userInput['MemUnits']} -e cport=$Container_Port -e hport=$Instance_Port -e lgroup=${userInput['LogGroup']} -e lstream=${userInput['LogStream']}'"
                             ])
+                        def SG=readFile('tmpsg')
+                        sh "bash task-def.sh $Application_Name $Envi_ronment $Instance_Port ${SG}"
                 }
             }
         }
