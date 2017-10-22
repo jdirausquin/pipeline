@@ -26,9 +26,9 @@ variable "subnet2" {
     }
 }
 
-variable "certid" {
-    default = "arn:aws:acm:us-east-1:379099483335:certificate/f1976ccc-0b1c-4149-9601-f60c16837626"
-}
+#variable "certid" {
+#    default = "arn:aws:acm:us-east-1:379099483335:certificate/f1976ccc-0b1c-4149-9601-f60c16837626"
+#}
 
 variable "env" {}
 variable "app" {}
@@ -79,7 +79,7 @@ resource "aws_elb" "elb" {
     listener {
       lb_port                   = 443
       lb_protocol               = "https"
-      ssl_certificate_id        = "${var.certid}"
+ #     ssl_certificate_id        = "${var.certid}"
       instance_port             = "${var.port}"
       instance_protocol         = "https"
     }
